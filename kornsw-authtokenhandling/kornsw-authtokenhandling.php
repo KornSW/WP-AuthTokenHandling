@@ -8,13 +8,20 @@
  * Requires PHP:      8.1
  * Author:            KornSW
  * License:           GPL-2.0-or-later
- * Update URI:        https://github.com/KornSW/WP-AuthTokenHandling
+ * Update URI:        https://raw.githubusercontent.com/KornSW/WP-AuthTokenHandling/master/doc/kornsw-authtokenhandling.update.json
  * Text Domain:       kornsw-authtokenhandling
  */
 
 if (!defined('ABSPATH')) {
     exit;
 }
+
+
+/*************** SELF-UPDATE ***************/
+define( 'KSWKORNSWAUTHTOF97D_SELF_UPDATE_DIAGNOSTICS', false );
+require_once __DIR__ . '/self-update.php';
+kswkornswauthtof97d_bootstrap( __FILE__ );
+/*******************************************/
 
 define('KORNSW_ATH_VERSION', '1.0.0');
 define('KORNSW_ATH_FILE', __FILE__);
