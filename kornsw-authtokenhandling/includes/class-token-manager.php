@@ -4,7 +4,7 @@ final class KornSW_ATH_Token_Manager {
     public static function try_get_access_token($source_uid,$user_id=0,$options=array()){
         $profile=KornSW_ATH_Config_Repository::get_profile($source_uid);if(!$profile)return self::result('SOURCE_NOT_FOUND');if(isset($profile['Enabled'])&&!$profile['Enabled'])return self::result('SOURCE_DISABLED');
         if(!$user_id)$user_id=get_current_user_id();if(!$user_id)return self::result('USER_NOT_LOGGED_IN');
-        $prefer_session=($source_uid===KornSW_ATH_Config_Repository::get_primary_source_uid());$token=KornSW_ATH_Storage::get_token_set($user_id,$source_uid,$prefer_session);if(is_wp_error($token))return self::result('ERROR',array('error'=>$token));
+        $prefer_session=KornSW_ATH_Config_Repository::is_login_source($source_uid);$token=KornSW_ATH_Storage::get_token_set($user_id,$source_uid,$prefer_session);if(is_wp_error($token))return self::result('ERROR',array('error'=>$token));
         if(!$token){
             $mode=(string)(($profile['AuthTokenConfig']??array())['IssueMode']??'RAW_INPUT');
             if($mode==='LOCAL_JWT_GENERATION'){$user=get_user_by('id',$user_id);$issuer=new KornSW_ATH_Local_JWT_Issuer($profile,$user);$issued=$issuer->try_request_access_token();if(is_wp_error($issued))return self::result('ERROR',array('error'=>$issued));$scope=$prefer_session?'session':'persistent';$sh=$scope==='session'?KornSW_ATH_Storage::session_hash():'';KornSW_ATH_Storage::save_token_set($user_id,$source_uid,$scope,$sh,$issued);$token=KornSW_ATH_Storage::get_token_set($user_id,$source_uid,$prefer_session);} else return self::result('AUTHENTICATION_REQUIRED');
