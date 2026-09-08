@@ -4,6 +4,11 @@
 
 *(none)*
 
+## v 1.0.3
+released **2026-09-08**, including:
+ - new Feature: OAuth-Server
+
+
 ## v 1.0.2
 released **2026-09-07**, including:
  - next step

@@ -1,13 +1,13 @@
 {
-  "currentVersionWithSuffix": "1.0.2",
+  "currentVersionWithSuffix": "1.0.3",
   "releaseType": "",
-  "currentVersion": "1.0.2",
+  "currentVersion": "1.0.3",
   "currentMajor": 1,
   "currentMinor": 0,
-  "currentFix": 2,
-  "previousVersion": "1.0.1",
+  "currentFix": 3,
+  "previousVersion": "1.0.2",
   "changeGrade": "fix",
-  "versionTimeInfo": "11:27:53",
-  "versionDateInfo": "2026-09-07",
-  "versionNotes": "- next step\n"
+  "versionTimeInfo": "11:17:07",
+  "versionDateInfo": "2026-09-08",
+  "versionNotes": "- new Feature: OAuth-Server\n"
 }
