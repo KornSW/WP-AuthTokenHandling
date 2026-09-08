@@ -1,13 +1,13 @@
 {
-  "currentVersionWithSuffix": "1.0.4",
+  "currentVersionWithSuffix": "1.0.5",
   "releaseType": "",
-  "currentVersion": "1.0.4",
+  "currentVersion": "1.0.5",
   "currentMajor": 1,
   "currentMinor": 0,
-  "currentFix": 4,
-  "previousVersion": "1.0.3",
+  "currentFix": 5,
+  "previousVersion": "1.0.4",
   "changeGrade": "fix",
-  "versionTimeInfo": "12:28:50",
+  "versionTimeInfo": "12:42:53",
   "versionDateInfo": "2026-09-08",
-  "versionNotes": "- NEW FEATURE: test2\n"
+  "versionNotes": "- ## 1.2.0\n- dummy\n"
 }

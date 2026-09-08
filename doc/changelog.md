@@ -4,8 +4,11 @@
 
 *(none)*
 
-## 1.2.0
-dummy
+## v 1.0.5
+released **2026-09-08**, including:
+ - ## 1.2.0
+ - dummy
+
 
 ## v 1.0.4
 released **2026-09-08**, including:
