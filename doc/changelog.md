@@ -7,6 +7,10 @@
 ## 1.2.0
 dummy
 
+## v 1.0.4
+released **2026-09-08**, including:
+ - NEW FEATURE: test2
+
 ## v 1.0.3
 released **2026-09-08**, including:
  - new Feature: OAuth-Server
