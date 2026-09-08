@@ -151,15 +151,19 @@ final class KornSW_ATH_Session_Guard {
         $profiles = KornSW_ATH_Config_Repository::get_login_profiles();
         if (!$profiles) { return; }
         $return = esc_url_raw(wp_unslash($_REQUEST['redirect_to'] ?? admin_url()));
-        echo '<aside id="kornsw-ath-login-methods" class="kornsw-ath-login-methods" aria-label="Weitere Anmeldemöglichkeiten">';
-        echo '<div class="kornsw-ath-login-methods__title">Oder anmelden mit</div>';
+        $is_native_login = isset($GLOBALS['pagenow']) && $GLOBALS['pagenow'] === 'wp-login.php';
+        echo '<aside id="kornsw-ath-login-methods" class="kornsw-ath-login-methods" aria-label="OAuth-Anmeldung" data-native-login="' . ($is_native_login ? '1' : '0') . '">';
+        if ($is_native_login) {
+            echo '<div class="kornsw-ath-login-methods__title">Oder anmelden mit</div>';
+        }
         echo '<div class="kornsw-ath-login-grid">';
         foreach ($profiles as $profile) {
             echo self::login_tile_html($profile, $return);
         }
         echo '</div></aside>';
-        echo '<script>(function(){var panel=document.getElementById("kornsw-ath-login-methods");var form=document.getElementById("loginform");var login=document.getElementById("login");if(panel&&form){form.insertAdjacentElement("afterend",panel);}else if(panel&&login){login.appendChild(panel);}function alignPanel(){if(!panel||!form){return;}if(window.matchMedia("(min-width: 900px)").matches){panel.style.setProperty("--kornsw-ath-login-methods-top",form.offsetTop+"px");}else{panel.style.removeProperty("--kornsw-ath-login-methods-top");}}alignPanel();window.addEventListener("resize",alignPanel);})()
-</script>';
+        if ($is_native_login) {
+            echo '<script>(function(){var panel=document.getElementById("kornsw-ath-login-methods");var form=document.getElementById("loginform");if(!panel||!form){return;}form.appendChild(panel);})()</script>';
+        }
     }
 
     private static function login_tile_html($profile, $return) {
