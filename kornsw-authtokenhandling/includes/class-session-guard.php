@@ -158,7 +158,8 @@ final class KornSW_ATH_Session_Guard {
             echo self::login_tile_html($profile, $return);
         }
         echo '</div></aside>';
-        echo '<script>(function(){var panel=document.getElementById("kornsw-ath-login-methods");var form=document.getElementById("loginform");var login=document.getElementById("login");if(panel&&form){form.insertAdjacentElement("afterend",panel);}else if(panel&&login){login.appendChild(panel);}})();</script>';
+        echo '<script>(function(){var panel=document.getElementById("kornsw-ath-login-methods");var form=document.getElementById("loginform");var login=document.getElementById("login");if(panel&&form){form.insertAdjacentElement("afterend",panel);}else if(panel&&login){login.appendChild(panel);}function alignPanel(){if(!panel||!form){return;}if(window.matchMedia("(min-width: 900px)").matches){panel.style.setProperty("--kornsw-ath-login-methods-top",form.offsetTop+"px");}else{panel.style.removeProperty("--kornsw-ath-login-methods-top");}}alignPanel();window.addEventListener("resize",alignPanel);})()
+</script>';
     }
 
     private static function login_tile_html($profile, $return) {
