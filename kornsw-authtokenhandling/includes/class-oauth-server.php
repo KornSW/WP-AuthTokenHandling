@@ -177,12 +177,12 @@ final class KornSW_ATH_OAuth_Server {
     }
 
     private static function render_favicon($url,$label){
-        $fallback=strtoupper(substr(trim((string)$label),0,1));
+        $fallback='<span class="kornsw-ath-login-tile__fallback kornsw-ath-login-tile__fallback--centered" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M3 10.7 12 3l9 7.7v9.1c0 .7-.5 1.2-1.2 1.2h-5.3v-6.1h-5V21H4.2C3.5 21 3 20.5 3 19.8v-9.1Zm2 1v7.3h2.5v-6.1h9V19H19v-7.3l-7-6-7 6Z"/></svg></span>';
         if($url!==''){
-            echo '<img src="'.esc_url($url).'" alt="" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';"><span class="kornsw-ath-login-tile__fallback" style="display:none;margin:0 auto">'.esc_html($fallback).'</span>';
+            echo '<img src="'.esc_url($url).'" alt="" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';">'.str_replace('class="kornsw-ath-login-tile__fallback kornsw-ath-login-tile__fallback--centered"','class="kornsw-ath-login-tile__fallback kornsw-ath-login-tile__fallback--centered" style="display:none"',$fallback);
             return;
         }
-        echo '<span class="kornsw-ath-login-tile__fallback" style="margin:0 auto">'.esc_html($fallback).'</span>';
+        echo $fallback;
     }
 
     public static function token(){

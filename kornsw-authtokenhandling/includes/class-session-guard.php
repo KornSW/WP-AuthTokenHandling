@@ -5,7 +5,7 @@ final class KornSW_ATH_Session_Guard {
     public static function register_hooks() {
         add_filter('login_redirect', array(__CLASS__, 'login_redirect'), 20, 3);
         add_action('init', array(__CLASS__, 'enforce_login_source'), 1);
-        add_action('login_form', array(__CLASS__, 'render_oauth_login'));
+        add_action('login_footer', array(__CLASS__, 'render_oauth_login'));
         add_action('login_init', array(__CLASS__, 'handle_login_actions'));
         add_action('login_enqueue_scripts', array(__CLASS__, 'enqueue_login_assets'));
         add_action('admin_post_kornsw_ath_admin_bypass', array(__CLASS__, 'admin_bypass'));
@@ -146,16 +146,19 @@ final class KornSW_ATH_Session_Guard {
     }
 
     public static function render_oauth_login() {
+        $action = (string) ($_REQUEST['action'] ?? 'login');
+        if ($action !== '' && $action !== 'login') { return; }
         $profiles = KornSW_ATH_Config_Repository::get_login_profiles();
         if (!$profiles) { return; }
         $return = esc_url_raw(wp_unslash($_REQUEST['redirect_to'] ?? admin_url()));
-        echo '<div class="kornsw-ath-login-methods">';
+        echo '<aside id="kornsw-ath-login-methods" class="kornsw-ath-login-methods" aria-label="Weitere Anmeldemöglichkeiten">';
         echo '<div class="kornsw-ath-login-methods__title">Oder anmelden mit</div>';
         echo '<div class="kornsw-ath-login-grid">';
         foreach ($profiles as $profile) {
             echo self::login_tile_html($profile, $return);
         }
-        echo '</div></div>';
+        echo '</div></aside>';
+        echo '<script>(function(){var panel=document.getElementById("kornsw-ath-login-methods");var form=document.getElementById("loginform");var login=document.getElementById("login");if(panel&&form){form.insertAdjacentElement("afterend",panel);}else if(panel&&login){login.appendChild(panel);}})();</script>';
     }
 
     private static function login_tile_html($profile, $return) {
@@ -165,12 +168,17 @@ final class KornSW_ATH_Session_Guard {
         $target = self::profile_authentication_url($profile);
         $host = self::display_host($target);
         $favicon = self::favicon_url($target);
-        $fallback = strtoupper(substr($label, 0, 1));
         $url = self::source_start_url($uid, $return);
+        $fallback = self::fallback_icon_html('kornsw-ath-login-tile__fallback');
         $icon = $favicon !== ''
-            ? '<img class="kornsw-ath-login-tile__icon" src="' . esc_url($favicon) . '" alt="" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';"><span class="kornsw-ath-login-tile__fallback" style="display:none">' . esc_html($fallback) . '</span>'
-            : '<span class="kornsw-ath-login-tile__fallback">' . esc_html($fallback) . '</span>';
+            ? '<img class="kornsw-ath-login-tile__icon" src="' . esc_url($favicon) . '" alt="" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';">' . str_replace('class="kornsw-ath-login-tile__fallback"', 'class="kornsw-ath-login-tile__fallback" style="display:none"', $fallback)
+            : $fallback;
         return '<a class="kornsw-ath-login-tile" href="' . esc_url($url) . '">' . $icon . '<span class="kornsw-ath-login-tile__body"><span class="kornsw-ath-login-tile__label">Mit ' . esc_html($label) . ' anmelden</span>' . ($host !== '' ? '<span class="kornsw-ath-login-tile__host">' . esc_html($host) . '</span>' : '') . '</span><span class="kornsw-ath-login-tile__arrow" aria-hidden="true">›</span></a>';
+    }
+
+
+    private static function fallback_icon_html($class_name) {
+        return '<span class="' . esc_attr($class_name) . '" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M3 10.7 12 3l9 7.7v9.1c0 .7-.5 1.2-1.2 1.2h-5.3v-6.1h-5V21H4.2C3.5 21 3 20.5 3 19.8v-9.1Zm2 1v7.3h2.5v-6.1h9V19H19v-7.3l-7-6-7 6Z"/></svg></span>';
     }
 
     private static function profile_authentication_url($profile) {

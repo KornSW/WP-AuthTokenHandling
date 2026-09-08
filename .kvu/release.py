@@ -359,10 +359,17 @@ def classify(changes: list[str], previous: tuple[int, int, int]):
             mvp = True
             mvp_lines.append(change)
 
-        if "**breaking change:**" in lower:
+        # New Feature / Breaking Change may originate either from the
+        # Markdown changelog or directly from a Git commit subject.
+        # Recognition is case-insensitive and permits any amount of
+        # whitespace between the two words, including no whitespace.
+        is_breaking_change = re.search(r"breaking\\s*change", change, re.IGNORECASE) is not None
+        is_new_feature = re.search(r"new\\s*feature", change, re.IGNORECASE) is not None
+
+        if is_breaking_change:
             group = "major"
             grade = "major"
-        elif "**new feature:**" in lower:
+        elif is_new_feature:
             group = "minor"
             if grade != "major":
                 grade = "minor"
