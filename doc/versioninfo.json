@@ -1,13 +1,13 @@
 {
-  "currentVersionWithSuffix": "1.2.2",
+  "currentVersionWithSuffix": "1.2.3",
   "releaseType": "",
-  "currentVersion": "1.2.2",
+  "currentVersion": "1.2.3",
   "currentMajor": 1,
   "currentMinor": 2,
-  "currentFix": 2,
-  "previousVersion": "1.2.1",
+  "currentFix": 3,
+  "previousVersion": "1.2.2",
   "changeGrade": "fix",
-  "versionTimeInfo": "14:29:44",
+  "versionTimeInfo": "14:53:26",
   "versionDateInfo": "2026-09-08",
-  "versionNotes": "- korrektur box position\n"
+  "versionNotes": "- fix\n"
 }
