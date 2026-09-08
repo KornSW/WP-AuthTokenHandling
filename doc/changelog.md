@@ -4,6 +4,11 @@
 
 *(none)*
 
+## v 1.2.2
+released **2026-09-08**, including:
+ - korrektur box position
+
+
 ## v 1.2.1
  - dummy
 
