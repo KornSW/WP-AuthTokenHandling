@@ -7,7 +7,12 @@ final class KornSW_ATH_Session_Guard {
         add_action('init', array(__CLASS__, 'enforce_login_source'), 1);
         add_action('login_form', array(__CLASS__, 'render_oauth_login'));
         add_action('login_init', array(__CLASS__, 'handle_login_actions'));
+        add_action('login_enqueue_scripts', array(__CLASS__, 'enqueue_login_assets'));
         add_action('admin_post_kornsw_ath_admin_bypass', array(__CLASS__, 'admin_bypass'));
+    }
+
+    public static function enqueue_login_assets() {
+        wp_enqueue_style('kornsw-ath-login', KORNSW_ATH_URL . 'assets/login.css', array(), KORNSW_ATH_VERSION);
     }
 
     public static function login_redirect($redirect_to, $requested, $user) {
@@ -48,19 +53,42 @@ final class KornSW_ATH_Session_Guard {
         $return = esc_url_raw(wp_unslash($_GET['return'] ?? $_GET['redirect_to'] ?? admin_url()));
         $user = wp_get_current_user();
         $is_admin = $user->ID && in_array('administrator', (array) $user->roles, true);
-        ?><!doctype html><html><head><meta charset="utf-8"><title>Authentifizierung wählen</title><?php wp_admin_css('login', true); ?></head><body class="login"><div id="login"><h1><a href="<?php echo esc_url(home_url('/')); ?>">WordPress</a></h1><div class="message"><p><?php echo esc_html(count($profiles) > 1 ? 'Wähle die Token Source, mit der diese WordPress-Sitzung authentifiziert werden soll.' : 'Für diese WordPress-Sitzung ist eine zusätzliche Token-Authentifizierung vorgesehen.'); ?></p></div><?php
-        if (!$profiles) {
-            echo '<div class="notice notice-error"><p>Es ist keine aktive WordPress-Login-Token-Source verfügbar.</p></div>';
-        }
-        foreach ($profiles as $profile) {
-            $uid = (string) $profile['TokenSourceUid'];
-            $label = (string) ($profile['DisplayName'] ?? $uid);
-            echo '<p><a class="button button-primary button-large" style="width:100%;text-align:center" href="' . esc_url(self::source_start_url($uid, $return)) . '">Mit ' . esc_html($label) . ' anmelden</a></p>';
-        }
-        if ($is_admin) {
-            ?><div class="message"><p>Als Administrator kannst du die Token-Pflicht nur für diese Sitzung deaktivieren. Dadurch bleibt ein lokaler Notfallzugang erhalten.</p></div><form method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>"><input type="hidden" name="action" value="kornsw_ath_admin_bypass"><input type="hidden" name="return" value="<?php echo esc_attr($return); ?>"><?php wp_nonce_field('kornsw_ath_admin_bypass'); ?><p><button class="button button-secondary button-large" style="width:100%">Nur WordPress-Passwort für diese Sitzung</button></p></form><?php
-        }
-        ?></div></body></html><?php
+        $site_name = get_bloginfo('name');
+        ?><!doctype html>
+        <html lang="de">
+        <head>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width,initial-scale=1">
+            <title><?php echo esc_html('Anmeldung – ' . $site_name); ?></title>
+            <link rel="stylesheet" href="<?php echo esc_url(KORNSW_ATH_URL . 'assets/login.css?ver=' . rawurlencode(KORNSW_ATH_VERSION)); ?>">
+        </head>
+        <body class="kornsw-ath-auth-page">
+            <main class="kornsw-ath-auth-shell">
+                <div class="kornsw-ath-auth-site"><span class="kornsw-ath-auth-site__name"><?php echo esc_html($site_name); ?></span></div>
+                <section class="kornsw-ath-auth-card">
+                    <h1>Authentifizierung wählen</h1>
+                    <p class="kornsw-ath-auth-card__lead"><?php echo esc_html(count($profiles) > 1 ? 'Wähle aus, mit welchem Konto diese Sitzung authentifiziert werden soll.' : 'Für diese Sitzung ist eine zusätzliche Authentifizierung erforderlich.'); ?></p>
+                    <?php if (!$profiles) { ?>
+                        <p>Es ist keine aktive WordPress-Login-Token-Source verfügbar.</p>
+                    <?php } else { ?>
+                        <div class="kornsw-ath-login-grid">
+                            <?php foreach ($profiles as $profile) { echo self::login_tile_html($profile, $return); } ?>
+                        </div>
+                    <?php } ?>
+                    <?php if ($is_admin) { ?>
+                        <div class="kornsw-ath-auth-card__separator"></div>
+                        <form class="kornsw-ath-auth-form" method="post" action="<?php echo esc_url(admin_url('admin-post.php')); ?>">
+                            <input type="hidden" name="action" value="kornsw_ath_admin_bypass">
+                            <input type="hidden" name="return" value="<?php echo esc_attr($return); ?>">
+                            <?php wp_nonce_field('kornsw_ath_admin_bypass'); ?>
+                            <button type="submit" class="secondary">Nur WordPress-Passwort für diese Sitzung</button>
+                        </form>
+                        <p class="kornsw-ath-note">Der lokale Administratorzugang umgeht die Token-Pflicht ausschließlich für diese konkrete Sitzung.</p>
+                    <?php } ?>
+                </section>
+            </main>
+        </body>
+        </html><?php
         exit;
     }
 
@@ -121,13 +149,53 @@ final class KornSW_ATH_Session_Guard {
         $profiles = KornSW_ATH_Config_Repository::get_login_profiles();
         if (!$profiles) { return; }
         $return = esc_url_raw(wp_unslash($_REQUEST['redirect_to'] ?? admin_url()));
-        if (count($profiles) === 1) {
-            $profile = $profiles[0];
-            $label = esc_html($profile['DisplayName'] ?? 'OAuth');
-            $url = self::source_start_url((string) $profile['TokenSourceUid'], $return);
-            echo '<p style="margin-top:16px"><a class="button button-secondary button-large" style="width:100%;text-align:center" href="' . esc_url($url) . '">Mit ' . $label . ' anmelden</a></p>';
-            return;
+        echo '<div class="kornsw-ath-login-methods">';
+        echo '<div class="kornsw-ath-login-methods__title">Oder anmelden mit</div>';
+        echo '<div class="kornsw-ath-login-grid">';
+        foreach ($profiles as $profile) {
+            echo self::login_tile_html($profile, $return);
         }
-        echo '<p style="margin-top:16px"><a class="button button-secondary button-large" style="width:100%;text-align:center" href="' . esc_url(self::choice_url($return)) . '">Mit OAuth / Token Source anmelden</a></p>';
+        echo '</div></div>';
+    }
+
+    private static function login_tile_html($profile, $return) {
+        $uid = (string) ($profile['TokenSourceUid'] ?? '');
+        $label = trim((string) ($profile['DisplayName'] ?? ''));
+        if ($label === '') { $label = 'OAuth'; }
+        $target = self::profile_authentication_url($profile);
+        $host = self::display_host($target);
+        $favicon = self::favicon_url($target);
+        $fallback = strtoupper(substr($label, 0, 1));
+        $url = self::source_start_url($uid, $return);
+        $icon = $favicon !== ''
+            ? '<img class="kornsw-ath-login-tile__icon" src="' . esc_url($favicon) . '" alt="" loading="lazy" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';"><span class="kornsw-ath-login-tile__fallback" style="display:none">' . esc_html($fallback) . '</span>'
+            : '<span class="kornsw-ath-login-tile__fallback">' . esc_html($fallback) . '</span>';
+        return '<a class="kornsw-ath-login-tile" href="' . esc_url($url) . '">' . $icon . '<span class="kornsw-ath-login-tile__body"><span class="kornsw-ath-login-tile__label">Mit ' . esc_html($label) . ' anmelden</span>' . ($host !== '' ? '<span class="kornsw-ath-login-tile__host">' . esc_html($host) . '</span>' : '') . '</span><span class="kornsw-ath-login-tile__arrow" aria-hidden="true">›</span></a>';
+    }
+
+    private static function profile_authentication_url($profile) {
+        $provider = strtolower((string) ($profile['OAuthOperationsProvider'] ?? 'generic'));
+        $config = is_array($profile['ProviderConfiguration'] ?? null) ? $profile['ProviderConfiguration'] : array();
+        if ($provider === 'google') { return 'https://accounts.google.com/'; }
+        if ($provider === 'github') { return 'https://github.com/'; }
+        if ($provider === 'microsoft') { return 'https://login.microsoftonline.com/'; }
+        if ($provider === 'apple') { return 'https://appleid.apple.com/'; }
+        if ($provider === 'facebook') { return 'https://www.facebook.com/'; }
+        if ($provider === 'remote_wordpress') { return esc_url_raw((string) ($config['remote_base_url'] ?? '')); }
+        return esc_url_raw((string) ($config['authorization_endpoint'] ?? ''));
+    }
+
+    private static function favicon_url($url) {
+        $parts = wp_parse_url((string) $url);
+        if (!$parts || empty($parts['scheme']) || empty($parts['host'])) { return ''; }
+        $scheme = strtolower((string) $parts['scheme']);
+        if ($scheme !== 'http' && $scheme !== 'https') { return ''; }
+        $port = isset($parts['port']) ? ':' . (int) $parts['port'] : '';
+        return $scheme . '://' . $parts['host'] . $port . '/favicon.ico';
+    }
+
+    private static function display_host($url) {
+        $host = wp_parse_url((string) $url, PHP_URL_HOST);
+        return is_string($host) ? $host : '';
     }
 }
