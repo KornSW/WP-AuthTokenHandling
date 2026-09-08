@@ -8,7 +8,9 @@ final class KornSW_ATH_Storage {
             'connections' => $wpdb->prefix . 'kornsw_ath_connections',
             'token_sets' => $wpdb->prefix . 'kornsw_ath_token_sets',
             'bindings' => $wpdb->prefix . 'kornsw_ath_session_bindings',
-            'continuations' => $wpdb->prefix . 'kornsw_ath_continuations'
+            'continuations' => $wpdb->prefix . 'kornsw_ath_continuations',
+            'server_codes' => $wpdb->prefix . 'kornsw_ath_server_codes',
+            'server_refresh' => $wpdb->prefix . 'kornsw_ath_server_refresh'
         );
     }
 
@@ -72,6 +74,30 @@ final class KornSW_ATH_Storage {
             created_at DATETIME NOT NULL,
             PRIMARY KEY (continuation_id),
             UNIQUE KEY state_hash (state_hash),
+            KEY expires_at (expires_at)
+        ) $charset;");
+        dbDelta("CREATE TABLE {$t['server_codes']} (
+            code_hash VARCHAR(64) NOT NULL,
+            client_id VARCHAR(191) NOT NULL,
+            user_id BIGINT UNSIGNED NOT NULL,
+            redirect_uri TEXT NOT NULL,
+            requested_scope TEXT NULL,
+            code_challenge VARCHAR(191) NULL,
+            nonce VARCHAR(191) NULL,
+            expires_at DATETIME NOT NULL,
+            created_at DATETIME NOT NULL,
+            PRIMARY KEY (code_hash),
+            KEY expires_at (expires_at)
+        ) $charset;");
+        dbDelta("CREATE TABLE {$t['server_refresh']} (
+            token_hash VARCHAR(64) NOT NULL,
+            client_id VARCHAR(191) NOT NULL,
+            user_id BIGINT UNSIGNED NOT NULL,
+            requested_scope TEXT NULL,
+            expires_at DATETIME NOT NULL,
+            created_at DATETIME NOT NULL,
+            PRIMARY KEY (token_hash),
+            KEY client_user (client_id, user_id),
             KEY expires_at (expires_at)
         ) $charset;");
     }
@@ -198,4 +224,44 @@ final class KornSW_ATH_Storage {
         $row['verifier']=$verifier; $row['payload']=json_decode((string)$row['payload_json'],true) ?: array();
         return $row;
     }
+
+    public static function create_server_code($client_id,$user_id,$redirect_uri,$requested_scope,$code_challenge='',$nonce='') {
+        global $wpdb; $t=self::tables();
+        $code=rtrim(strtr(base64_encode(random_bytes(36)),'+/','-_'),'=');
+        $ok=$wpdb->insert($t['server_codes'],array(
+            'code_hash'=>hash('sha256',$code),'client_id'=>$client_id,'user_id'=>$user_id,'redirect_uri'=>$redirect_uri,
+            'requested_scope'=>$requested_scope,'code_challenge'=>$code_challenge,'nonce'=>$nonce,
+            'expires_at'=>gmdate('Y-m-d H:i:s',time()+5*MINUTE_IN_SECONDS),'created_at'=>current_time('mysql',true)
+        ));
+        return $ok?$code:new WP_Error('server_code_store_failed',$wpdb->last_error?:'Authorization Code konnte nicht gespeichert werden.');
+    }
+
+    public static function consume_server_code($code) {
+        global $wpdb; $t=self::tables(); $hash=hash('sha256',(string)$code);
+        $row=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$t['server_codes']} WHERE code_hash=%s",$hash),ARRAY_A);
+        if(!$row)return new WP_Error('invalid_code','Authorization Code ist unbekannt oder bereits verbraucht.');
+        $wpdb->delete($t['server_codes'],array('code_hash'=>$hash));
+        if(strtotime($row['expires_at'].' UTC')<time())return new WP_Error('expired_code','Authorization Code ist abgelaufen.');
+        return $row;
+    }
+
+    public static function create_server_refresh_token($client_id,$user_id,$requested_scope) {
+        global $wpdb; $t=self::tables();
+        $token=rtrim(strtr(base64_encode(random_bytes(48)),'+/','-_'),'=');
+        $ok=$wpdb->insert($t['server_refresh'],array(
+            'token_hash'=>hash('sha256',$token),'client_id'=>$client_id,'user_id'=>$user_id,'requested_scope'=>$requested_scope,
+            'expires_at'=>gmdate('Y-m-d H:i:s',time()+180*DAY_IN_SECONDS),'created_at'=>current_time('mysql',true)
+        ));
+        return $ok?$token:new WP_Error('refresh_store_failed',$wpdb->last_error?:'Refresh Token konnte nicht gespeichert werden.');
+    }
+
+    public static function consume_server_refresh_token($token,$client_id) {
+        global $wpdb; $t=self::tables(); $hash=hash('sha256',(string)$token);
+        $row=$wpdb->get_row($wpdb->prepare("SELECT * FROM {$t['server_refresh']} WHERE token_hash=%s AND client_id=%s",$hash,$client_id),ARRAY_A);
+        if(!$row)return new WP_Error('invalid_refresh','Refresh Token ist unbekannt oder bereits verbraucht.');
+        $wpdb->delete($t['server_refresh'],array('token_hash'=>$hash));
+        if(strtotime($row['expires_at'].' UTC')<time())return new WP_Error('expired_refresh','Refresh Token ist abgelaufen.');
+        return $row;
+    }
+
 }

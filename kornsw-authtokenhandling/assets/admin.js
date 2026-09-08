@@ -30,7 +30,11 @@
       'issuing.supports_refresh_token', 'issuing.supports_id_token'
     ],
     google: ['issuing.client_id', 'issuing.client_secret', 'issuing.scopes'],
-    github: ['issuing.client_id', 'issuing.client_secret', 'issuing.scopes', 'issuing.github_refresh_token']
+    github: ['issuing.client_id', 'issuing.client_secret', 'issuing.scopes', 'issuing.github_refresh_token'],
+    microsoft: ['issuing.client_id', 'issuing.client_secret', 'issuing.scopes', 'issuing.microsoft_tenant'],
+    apple: ['issuing.client_id', 'issuing.scopes', 'issuing.apple_team_id', 'issuing.apple_key_id', 'issuing.apple_private_key'],
+    facebook: ['issuing.client_id', 'issuing.client_secret', 'issuing.scopes'],
+    remote_wordpress: ['issuing.client_id', 'issuing.client_secret', 'issuing.scopes', 'issuing.remote_base_url']
   };
 
   const INTROSPECTION_STRATEGY_RULES = {
@@ -44,7 +48,10 @@
   const INTROSPECTION_PROVIDER_RULES = {
     generic: ['introspection.endpoint', 'introspection.authorization'],
     google: [],
-    github: []
+    github: [],
+    microsoft: [],
+    facebook: [],
+    remote_wordpress: []
   };
 
   const SUPPORTED_ISSUE_MODES = Object.keys(ISSUING_STRATEGY_RULES);
@@ -230,6 +237,10 @@
       if (issuingProvider === 'generic') providerHelp.textContent = 'Generic: Authorization-, Token- und UserInfo-Endpunkte werden in diesem Profil konfiguriert.';
       if (issuingProvider === 'google') providerHelp.textContent = 'Google: Authorization-, Token- und UserInfo-Endpunkte sind fest im Provider implementiert.';
       if (issuingProvider === 'github') providerHelp.textContent = 'GitHub: Authorization-, Token- und User-Endpunkte sind fest im Provider implementiert.';
+      if (issuingProvider === 'microsoft') providerHelp.textContent = 'Microsoft: Endpunkte sind fest; nur Tenant, Client und Scopes werden konfiguriert.';
+      if (issuingProvider === 'apple') providerHelp.textContent = 'Apple: Endpunkte sind fest; benötigt Services ID, Team ID, Key ID und privaten Sign-in-with-Apple-Schlüssel.';
+      if (issuingProvider === 'facebook') providerHelp.textContent = 'Facebook: Graph/Login-Endpunkte sind fest im Provider implementiert.';
+      if (issuingProvider === 'remote_wordpress') providerHelp.textContent = 'Remote-WordPress: Endpunkte werden aus der Base URL automatisch abgeleitet.';
     }
 
     const introspectionHelp = document.querySelector('#ath-introspection-provider-help');
@@ -237,6 +248,9 @@
       if (introspectionProvider === 'generic') introspectionHelp.textContent = 'Generic: der Introspection-Endpunkt und seine Authorization werden hier konfiguriert.';
       if (introspectionProvider === 'google') introspectionHelp.textContent = 'Google: die Tokenprüfung verwendet den fest implementierten Google-tokeninfo-Endpunkt.';
       if (introspectionProvider === 'github') introspectionHelp.textContent = 'GitHub: die Tokenprüfung verwendet die fest implementierte GitHub User API.';
+      if (introspectionProvider === 'microsoft') introspectionHelp.textContent = 'Microsoft: die Tokenprüfung verwendet den festen OIDC UserInfo-Endpunkt.';
+      if (introspectionProvider === 'facebook') introspectionHelp.textContent = 'Facebook: die Tokenprüfung verwendet den festen debug_token-Endpunkt.';
+      if (introspectionProvider === 'remote_wordpress') introspectionHelp.textContent = 'Remote-WordPress: die Introspection-URL wird aus der Base URL des Issuing-Providers abgeleitet.';
     }
   }
 

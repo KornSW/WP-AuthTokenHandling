@@ -10,16 +10,16 @@ final class KornSW_ATH_Admin {
     }
 
     public static function menu() {
-        add_options_page('AuthTokenHandling (KornSW)', 'AuthTokenHandling (KornSW)', 'manage_options', 'kornsw-authtokenhandling', array(__CLASS__, 'page'));
+        add_users_page('AuthTokenHandling (KornSW)', 'AuthTokenHandling (KornSW)', 'manage_options', 'kornsw-authtokenhandling', array(__CLASS__, 'page'));
     }
 
     public static function plugin_links($links) {
-        array_unshift($links, '<a href="' . esc_url(admin_url('options-general.php?page=kornsw-authtokenhandling')) . '">Einstellungen</a>');
+        array_unshift($links, '<a href="' . esc_url(admin_url('users.php?page=kornsw-authtokenhandling')) . '">Einstellungen</a>');
         return $links;
     }
 
     public static function assets($hook) {
-        if ($hook !== 'settings_page_kornsw-authtokenhandling') return;
+        if ($hook !== 'users_page_kornsw-authtokenhandling') return;
         wp_enqueue_style('kornsw-ath-admin', KORNSW_ATH_URL . 'assets/admin.css', array(), KORNSW_ATH_VERSION);
         wp_enqueue_script('kornsw-ath-admin', KORNSW_ATH_URL . 'assets/admin.js', array(), KORNSW_ATH_VERSION, true);
         wp_localize_script('kornsw-ath-admin', 'KornSWATH', array('defaultProfile' => KornSW_ATH_Config_Repository::create_default_profile()));
@@ -31,11 +31,11 @@ final class KornSW_ATH_Admin {
         $json = (string) wp_unslash($_POST['profiles_json'] ?? '[]');
         $result = KornSW_ATH_Config_Repository::save_profiles_json($json);
         if (is_wp_error($result)) {
-            wp_safe_redirect(add_query_arg(array('page' => 'kornsw-authtokenhandling', 'ath_error' => rawurlencode($result->get_error_message())), admin_url('options-general.php')));
+            wp_safe_redirect(add_query_arg(array('page' => 'kornsw-authtokenhandling', 'ath_error' => rawurlencode($result->get_error_message())), admin_url('users.php')));
             exit;
         }
         update_option(KornSW_ATH_Config_Repository::OPTION_AUTO_ROLE, sanitize_key(wp_unslash($_POST['auto_role'] ?? 'subscriber')), false);
-        wp_safe_redirect(add_query_arg(array('page' => 'kornsw-authtokenhandling', 'updated' => 'true'), admin_url('options-general.php')));
+        wp_safe_redirect(add_query_arg(array('page' => 'kornsw-authtokenhandling', 'updated' => 'true'), admin_url('users.php')));
         exit;
     }
 
@@ -116,6 +116,10 @@ final class KornSW_ATH_Admin {
                         <option value="generic">Generic OAuth 2.0 / OIDC</option>
                         <option value="google">Google</option>
                         <option value="github">GitHub</option>
+                        <option value="microsoft">Microsoft</option>
+                        <option value="apple">Apple</option>
+                        <option value="facebook">Facebook</option>
+                        <option value="remote_wordpress">Remote-WordPress (AuthTokenHandling)</option>
                     </select>
                     <span class="description" id="ath-issuing-provider-help"></span>
                 </label>
@@ -123,6 +127,12 @@ final class KornSW_ATH_Admin {
                 <label hidden data-ath-field="issuing.client_id">Client ID<input type="text" data-config="ClientId"></label>
                 <label hidden data-ath-field="issuing.client_secret">Client Secret<input type="password" data-config="ClientSecret" autocomplete="new-password"></label>
                 <label hidden data-ath-field="issuing.scopes">Scopes<input type="text" data-provider="scopes"></label>
+
+                <label hidden data-ath-field="issuing.microsoft_tenant">Microsoft Tenant<input type="text" data-provider="tenant" placeholder="common"></label>
+                <label hidden data-ath-field="issuing.apple_team_id">Apple Team ID<input type="text" data-provider="apple_team_id"></label>
+                <label hidden data-ath-field="issuing.apple_key_id">Apple Key ID<input type="text" data-provider="apple_key_id"></label>
+                <label hidden data-ath-field="issuing.apple_private_key">Apple Private Key (PEM)<textarea rows="6" data-provider="apple_private_key"></textarea></label>
+                <label hidden data-ath-field="issuing.remote_base_url">Remote WordPress Base URL<input type="url" data-provider="remote_base_url" placeholder="https://portal.example.com"></label>
 
                 <label hidden data-ath-field="issuing.authorization_endpoint">Authorization Endpoint<input type="url" data-provider="authorization_endpoint"></label>
                 <label hidden data-ath-field="issuing.token_endpoint">Token Endpoint<input type="url" data-provider="token_endpoint"></label>
@@ -145,7 +155,7 @@ final class KornSW_ATH_Admin {
 
         <section data-panel="introspection" hidden>
             <h2>Introspection-/Validierungsstrategie</h2>
-            <p class="description">Ebene 1 legt die Validierungsstrategie fest. Nur bei einer externen Providerprüfung erscheint Ebene 2. Google und GitHub verwenden feste Implementierungsendpunkte; nur Generic benötigt frei konfigurierbare URLs.</p>
+            <p class="description">Ebene 1 legt die Validierungsstrategie fest. Nur bei einer externen Providerprüfung erscheint Ebene 2. OOB-Provider verwenden feste Implementierungsendpunkte; nur Generic benötigt frei konfigurierbare Endpoint-URLs.</p>
             <div class="ath-grid">
                 <label>
                     Strategie / ValidationMode
@@ -164,6 +174,9 @@ final class KornSW_ATH_Admin {
                         <option value="generic">Generic OAuth Introspection</option>
                         <option value="google">Google</option>
                         <option value="github">GitHub</option>
+                        <option value="microsoft">Microsoft</option>
+                        <option value="facebook">Facebook</option>
+                        <option value="remote_wordpress">Remote-WordPress (AuthTokenHandling)</option>
                     </select>
                     <span class="description" id="ath-introspection-provider-help"></span>
                 </label>

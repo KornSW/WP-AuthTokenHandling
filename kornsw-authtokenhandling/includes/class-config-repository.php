@@ -102,7 +102,7 @@ final class KornSW_ATH_Config_Repository {
             'ProviderConfiguration' => array(
                 'authorization_endpoint' => '', 'token_endpoint' => '', 'userinfo_endpoint' => '', 'introspection_endpoint' => '',
                 'introspection_auth' => 'none', 'supports_refresh_token' => true, 'supports_id_token' => false,
-                'scopes' => 'openid email profile'
+                'scopes' => 'openid email profile', 'tenant' => 'common', 'apple_team_id' => '', 'apple_key_id' => '', 'apple_private_key' => '', 'remote_base_url' => ''
             ),
             'IntrospectionProviderConfiguration' => array(
                 'introspection_endpoint' => ''

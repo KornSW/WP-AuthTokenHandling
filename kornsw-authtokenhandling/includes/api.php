@@ -1,5 +1,6 @@
 <?php
 if (!defined('ABSPATH')) { exit; }
+
 function kornsw_authtokenhandling_get_token_sources(){ $sources=array(); foreach(KornSW_ATH_Config_Repository::get_enabled_profiles() as $p){$uid=(string)$p['TokenSourceUid'];$sources[$uid]=array('token_source_uid'=>$uid,'display_name'=>(string)($p['DisplayName']??$uid),'provider'=>(string)($p['OAuthOperationsProvider']??'generic'),'enabled'=>true,'login_enabled'=>KornSW_ATH_Config_Repository::is_login_source($uid));} return apply_filters('kornsw_authtokenhandling_token_sources',$sources); }
 function kornsw_authtokenhandling_get_token_source_options($include_none=false){$r=$include_none?array(''=>'Keine'):array();foreach(kornsw_authtokenhandling_get_token_sources() as $uid=>$m)$r[$uid]=$m['display_name'];return $r;}
 function kornsw_authtokenhandling_render_token_source_select($field_name,$selected='',$args=array()){$options=kornsw_authtokenhandling_get_token_source_options(!empty($args['include_none']));$html='<select name="'.esc_attr($field_name).'"'.(!empty($args['id'])?' id="'.esc_attr($args['id']).'"':'').'>';foreach($options as $uid=>$label)$html.='<option value="'.esc_attr($uid).'" '.selected($selected,$uid,false).'>'.esc_html($label).'</option>';$html.='</select>';return $html;}
@@ -9,3 +10,20 @@ function kornsw_authtokenhandling_authorized_request($token_source_uid,$url,$opt
 function kornsw_authtokenhandling_is_connected($token_source_uid,$user_id=0){if(!$user_id)$user_id=get_current_user_id();return $user_id?(bool)KornSW_ATH_Storage::get_connection($user_id,$token_source_uid):false;}
 function kornsw_authtokenhandling_get_token_context($token_source_uid){$r=KornSW_ATH_Token_Manager::try_get_access_token($token_source_uid);if($r['status']!=='SUCCESS')return $r;return array('status'=>'SUCCESS','subject'=>(KornSW_ATH_Storage::get_connection(get_current_user_id(),$token_source_uid)['subject']??null),'scopes'=>$r['scopes']??array(),'claims'=>$r['claims']??array(),'expires_at'=>$r['expires_at']??null,'access_token'=>$r['access_token']);}
 function kornsw_authtokenhandling_has_ability($token_source_uid,$ability){$c=kornsw_authtokenhandling_get_token_context($token_source_uid);if(($c['status']??'')!=='SUCCESS')return false;if(in_array($ability,$c['scopes']??array(),true))return true;$abilities=$c['claims']['abilities']??array();if(is_string($abilities))$abilities=preg_split('/[\s,]+/',$abilities,-1,PREG_SPLIT_NO_EMPTY);return is_array($abilities)&&in_array($ability,$abilities,true);}
+
+/**
+ * Canonical OAuth-server scope resolver.
+ *
+ * Official extension hook:
+ *   kornsw_authtokenhandling_user_scopes
+ * Arguments: array $scopes, int $user_id, string $client_id,
+ *            array $requested_scopes, array $context
+ * Return: array|string of whitespace-separated scope tokens.
+ *
+ * The hook is evaluated during initial token issuing, refresh issuing and
+ * introspection. Plugins providing licenses/product entitlements should add
+ * their scopes here instead of manipulating JWTs or server storage directly.
+ */
+function kornsw_authtokenhandling_resolve_user_scopes($user_id,$client_id,$requested_scopes=array(),$context=array()){
+    return KornSW_ATH_OAuth_Server_Scopes::resolve($user_id,$client_id,$requested_scopes,$context);
+}

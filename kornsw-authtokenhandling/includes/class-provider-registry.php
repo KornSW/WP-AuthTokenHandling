@@ -6,7 +6,11 @@ final class KornSW_ATH_Provider_Registry {
         $providers = array(
             'generic' => new KornSW_ATH_Generic_Provider(),
             'google' => new KornSW_ATH_Google_Provider(),
-            'github' => new KornSW_ATH_GitHub_Provider()
+            'github' => new KornSW_ATH_GitHub_Provider(),
+            'microsoft' => new KornSW_ATH_Microsoft_Provider(),
+            'apple' => new KornSW_ATH_Apple_Provider(),
+            'facebook' => new KornSW_ATH_Facebook_Provider(),
+            'remote_wordpress' => new KornSW_ATH_Remote_WordPress_Provider()
         );
         return apply_filters('kornsw_authtokenhandling_oauth_providers', $providers);
     }
