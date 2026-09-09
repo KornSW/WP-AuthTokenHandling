@@ -8,7 +8,6 @@
 released **2026-09-08**, including:
  - fix
 
-
 ## v 1.2.2
 released **2026-09-08**, including:
  - korrektur box position
