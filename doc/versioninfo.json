@@ -1,13 +1,13 @@
 {
-  "currentVersionWithSuffix": "1.2.4",
+  "currentVersionWithSuffix": "1.2.5",
   "releaseType": "",
-  "currentVersion": "1.2.4",
+  "currentVersion": "1.2.5",
   "currentMajor": 1,
   "currentMinor": 2,
-  "currentFix": 4,
-  "previousVersion": "1.2.3",
+  "currentFix": 5,
+  "previousVersion": "1.2.4",
   "changeGrade": "fix",
-  "versionTimeInfo": "11:43:58",
+  "versionTimeInfo": "14:08:52",
   "versionDateInfo": "2026-09-09",
-  "versionNotes": "- L1 Cache to increase Roundtrip-Perfomance\n"
+  "versionNotes": "- added license\n"
 }

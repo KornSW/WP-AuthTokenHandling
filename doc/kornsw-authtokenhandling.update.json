@@ -1,14 +1,14 @@
 {
   "name": "KornSW AuthTokenHandling",
-  "version": "1.2.4",
+  "version": "1.2.5",
   "author": "KornSW",
   "homepage": "https://github.com/KornSW/WP-AuthTokenHandling",
-  "download_url": "https://github.com/KornSW/WP-AuthTokenHandling/releases/download/v1.2.4/kornsw-authtokenhandling.zip",
+  "download_url": "https://github.com/KornSW/WP-AuthTokenHandling/releases/download/v1.2.5/kornsw-authtokenhandling.zip",
   "requires": "6.5",
   "requires_php": "8.1",
   "tested": "",
   "sections": {
     "description": "Zentrale Token-Source-Runtime für WordPress mit OAuth/OIDC, Session-Bindung und öffentlicher Plugin-API.",
-    "changelog": "<h4>Version 1.2.4</h4><ul><li>L1 Cache to increase Roundtrip-Perfomance</li></ul>"
+    "changelog": "<h4>Version 1.2.5</h4><ul><li>added license</li></ul>"
   }
 }

@@ -4,6 +4,11 @@
 
 *(none)*
 
+## v 1.2.5
+released **2026-09-09**, including:
+ - added license
+
+
 ## v 1.2.4
 released **2026-09-09**, including:
  - L1 Cache to increase Roundtrip-Perfomance

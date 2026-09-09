@@ -3,7 +3,7 @@
  * Plugin Name:       KornSW AuthTokenHandling
  * Plugin URI:        https://github.com/KornSW/WP-AuthTokenHandling
  * Description:       Zentrale Token-Source-Runtime für WordPress mit OAuth/OIDC, Session-Bindung und öffentlicher Plugin-API.
- * Version:           1.2.4
+ * Version:           1.2.5
  * Requires at least: 6.5
  * Requires PHP:      8.1
  * Author:            KornSW
